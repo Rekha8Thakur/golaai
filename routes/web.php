@@ -10,20 +10,19 @@ Route::get('/videos/{video}', [VideoController::class, 'show'])->name('videos.sh
 Route::get('/videos/{video}/pdf', [VideoController::class, 'downloadPdf'])->name('videos.pdf');
 
 Route::get('/debug-python', function() {
-    $service = new \App\Services\YouTubeService();
-    $reflector = new ReflectionClass(\App\Services\YouTubeService::class);
-    $method = $reflector->getMethod('getPythonPath');
-    $method->setAccessible(true);
-    $pythonPath = $method->invoke($service);
+    $python3Result = \Illuminate\Support\Facades\Process::run(['which', 'python3']);
+    $pythonResult = \Illuminate\Support\Facades\Process::run(['which', 'python']);
     
-    $whereResult = \Illuminate\Support\Facades\Process::run(['where.exe', 'python']);
+    $python3Version = \Illuminate\Support\Facades\Process::run(['python3', '--version']);
+    $pythonVersion = \Illuminate\Support\Facades\Process::run(['python', '--version']);
     
     return response()->json([
         'os' => PHP_OS,
-        'resolved_python_path' => $pythonPath,
-        'where_successful' => $whereResult->successful(),
-        'where_output' => explode("\n", $whereResult->output()),
-        'where_error' => $whereResult->errorOutput(),
-        'env_path' => getenv('PATH'),
+        'which_python3' => trim($python3Result->output()),
+        'which_python3_successful' => $python3Result->successful(),
+        'which_python' => trim($pythonResult->output()),
+        'which_python_successful' => $pythonResult->successful(),
+        'python3_version' => trim($python3Version->output() ?: $python3Version->errorOutput()),
+        'python_version' => trim($pythonVersion->output() ?: $pythonVersion->errorOutput()),
     ]);
 });
