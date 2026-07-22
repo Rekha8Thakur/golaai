@@ -113,7 +113,20 @@ class YouTubeService
                     }
                 }
             }
+            return 'python';
         }
-        return 'python';
+
+        // On Linux / Hostinger, check for python3 first, then python
+        $result = Process::run(['which', 'python3']);
+        if ($result->successful() && !empty(trim($result->output()))) {
+            return trim($result->output());
+        }
+        
+        $result = Process::run(['which', 'python']);
+        if ($result->successful() && !empty(trim($result->output()))) {
+            return trim($result->output());
+        }
+
+        return 'python3';
     }
 }
