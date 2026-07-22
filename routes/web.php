@@ -10,17 +10,20 @@ Route::get('/videos/{video}', [VideoController::class, 'show'])->name('videos.sh
 Route::get('/videos/{video}/pdf', [VideoController::class, 'downloadPdf'])->name('videos.pdf');
 
 Route::get('/debug-python', function() {
-    $results = [];
-    $versions = ['python3.12', 'python3.11', 'python3.10', 'python3.9', 'python3.8', 'python3', 'python'];
-    foreach ($versions as $cmd) {
-        $run = \Illuminate\Support\Facades\Process::run([$cmd, '--version']);
-        $results[$cmd] = [
-            'exists' => $run->successful(),
-            'version' => trim($run->output() ?: $run->errorOutput()),
-        ];
-    }
+    $service = new \App\Services\YouTubeService();
+    $reflector = new ReflectionClass(\App\Services\YouTubeService::class);
+    $method = $reflector->getMethod('getPythonPath');
+    $method->setAccessible(true);
+    $pythonPath = $method->invoke($service);
+    
+    $whereResult = \Illuminate\Support\Facades\Process::run(['where.exe', 'python']);
+    
     return response()->json([
         'os' => PHP_OS,
-        'results' => $results,
+        'resolved_python_path' => $pythonPath,
+        'where_successful' => $whereResult->successful(),
+        'where_output' => explode("\n", $whereResult->output()),
+        'where_error' => $whereResult->errorOutput(),
+        'env_path' => getenv('PATH'),
     ]);
 });
