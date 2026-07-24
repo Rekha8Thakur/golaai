@@ -103,6 +103,7 @@ class VideoController extends Controller
                 ]);
 
             } catch (Exception $e) {
+                \Illuminate\Support\Facades\Log::error($e);
                 return response()->json([
                     'status' => 'error',
                     'message' => $e->getMessage()
@@ -178,6 +179,7 @@ class VideoController extends Controller
                 ];
 
             } catch (Exception $e) {
+                \Illuminate\Support\Facades\Log::error($e);
                 $results['failed'][] = [
                     'url' => $url,
                     'error' => $e->getMessage()
