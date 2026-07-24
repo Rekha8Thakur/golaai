@@ -28,7 +28,12 @@ def main():
     
     for attempt in range(max_retries):
         try:
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            # Handle list methods dynamically for different versions of the library
+            if hasattr(YouTubeTranscriptApi, 'list_transcripts'):
+                transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            else:
+                api = YouTubeTranscriptApi()
+                transcript_list = api.list(video_id)
             
             try:
                 # Try to get Hindi or English
@@ -41,11 +46,20 @@ def main():
             
             formatted_transcript = []
             for entry in transcript:
-                start = entry.start
+                # Handle both dict (newer official library) and object (local fork library) formats
+                if isinstance(entry, dict):
+                    start = entry.get('start', 0)
+                    duration = entry.get('duration', 0)
+                    text = entry.get('text', '')
+                else:
+                    start = getattr(entry, 'start', 0)
+                    duration = getattr(entry, 'duration', 0)
+                    text = getattr(entry, 'text', '')
+                
                 formatted_transcript.append({
                     "start": start,
-                    "duration": getattr(entry, 'duration', 0),
-                    "text": entry.text,
+                    "duration": duration,
+                    "text": text,
                     "time_str": format_time(start)
                 })
                 
