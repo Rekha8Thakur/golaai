@@ -1,6 +1,7 @@
 import sys
 import json
 import time
+import os
 from youtube_transcript_api import YouTubeTranscriptApi
 
 # Reconfigure stdout to use UTF-8 to prevent encoding errors on Windows
@@ -28,12 +29,22 @@ def main():
     
     for attempt in range(max_retries):
         try:
+            # Check for cookies file to bypass YouTube datacenter blocks
+            cookies_file = 'cookies.txt'
+            cookies_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), cookies_file)
+            kwargs = {}
+            if os.path.exists(cookies_path):
+                kwargs['cookies'] = cookies_path
+
             # Handle list methods dynamically for different versions of the library
             if hasattr(YouTubeTranscriptApi, 'list_transcripts'):
-                transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+                transcript_list = YouTubeTranscriptApi.list_transcripts(video_id, **kwargs)
             else:
                 api = YouTubeTranscriptApi()
-                transcript_list = api.list(video_id)
+                try:
+                    transcript_list = api.list(video_id, **kwargs)
+                except TypeError:
+                    transcript_list = api.list(video_id)
             
             try:
                 # Try to get Hindi or English
