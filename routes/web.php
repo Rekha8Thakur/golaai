@@ -55,14 +55,8 @@ Route::get('/pip-install', function () {
     }
 });
 
-Route::get('/check-python', function () {
-    try {
-        $scriptPath = base_path('get_transcript_api.py');
-        $result = \Illuminate\Support\Facades\Process::run(['python3', $scriptPath, 'dQw4w9WgXcQ']);
-        return 'Python Output: <br><pre>' . $result->output() . '</pre><br>Error: <pre>' . $result->errorOutput() . '</pre>';
-    } catch (\Exception $e) {
-        return 'Error checking python: ' . $e->getMessage();
-    }
-});
+
+
+
 
 
