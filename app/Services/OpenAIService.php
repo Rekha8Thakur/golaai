@@ -77,7 +77,13 @@ class OpenAIService
             ]);
 
             if (!$response->successful()) {
-                throw new Exception("OpenAI API call failed (HTTP " . $response->status() . "): " . $response->body());
+                $body = $response->body();
+                if (str_contains($response->header('Content-Type'), 'html') || str_contains($body, '<html')) {
+                    $body = "[HTML Error Page]";
+                } else {
+                    $body = mb_convert_encoding(substr($body, 0, 1000), 'UTF-8', 'UTF-8');
+                }
+                throw new Exception("OpenAI API call failed (HTTP " . $response->status() . "): " . $body);
             }
 
             $result = $response->json();
@@ -132,7 +138,13 @@ class OpenAIService
         ]);
 
         if (!$response->successful()) {
-            throw new Exception("Gemini fallback also failed (HTTP " . $response->status() . "): " . $response->body());
+            $body = $response->body();
+            if (str_contains($response->header('Content-Type'), 'html') || str_contains($body, '<html')) {
+                $body = "[HTML Error Page]";
+            } else {
+                $body = mb_convert_encoding(substr($body, 0, 1000), 'UTF-8', 'UTF-8');
+            }
+            throw new Exception("Gemini fallback also failed (HTTP " . $response->status() . "): " . $body);
         }
 
         $data = $response->json();
