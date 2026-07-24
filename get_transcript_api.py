@@ -28,8 +28,7 @@ def main():
     
     for attempt in range(max_retries):
         try:
-            api = YouTubeTranscriptApi()
-            transcript_list = api.list(video_id)
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
             
             try:
                 # Try to get Hindi or English
