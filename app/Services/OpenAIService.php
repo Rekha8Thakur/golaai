@@ -97,7 +97,8 @@ class OpenAIService
             $decoded = json_decode($cleanContent, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception("Failed to decode JSON from OpenAI response: " . json_last_error_msg() . "\nContent: " . $content);
+                $safeContent = mb_convert_encoding(substr($content, 0, 1000), 'UTF-8', 'UTF-8');
+                throw new Exception("Failed to decode JSON from OpenAI response: " . json_last_error_msg() . "\nContent: " . $safeContent);
             }
 
             return $decoded;
@@ -158,7 +159,8 @@ class OpenAIService
         $decoded = json_decode($cleanContent, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception("Failed to decode JSON from Gemini fallback response: " . json_last_error_msg() . "\nContent: " . $content);
+            $safeContent = mb_convert_encoding(substr($content, 0, 1000), 'UTF-8', 'UTF-8');
+            throw new Exception("Failed to decode JSON from Gemini fallback response: " . json_last_error_msg() . "\nContent: " . $safeContent);
         }
 
         return $decoded;
@@ -171,10 +173,11 @@ class OpenAIService
     {
         $json = trim($json);
         
-        // Remove markdown code fences if present (e.g. ```json ... ``` or ``` ...)
-        if (strpos($json, '```') === 0) {
-            $json = preg_replace('/^```(?:json)?\s+/i', '', $json);
-            $json = preg_replace('/\s+```$/', '', $json);
+        // Extract JSON content from markdown code fences if present
+        if (preg_match('/```json\s*(.*?)\s*```/s', $json, $matches)) {
+            $json = $matches[1];
+        } elseif (preg_match('/```\s*(.*?)\s*```/s', $json, $matches)) {
+            $json = $matches[1];
         }
         
         return trim($json);
