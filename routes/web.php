@@ -36,3 +36,22 @@ Route::get('/migrate', function () {
         return 'Error running migrations: ' . $e->getMessage();
     }
 });
+
+Route::get('/pip-install', function () {
+    try {
+        $result = \Illuminate\Support\Facades\Process::run(['python3', '-m', 'pip', 'install', '--user', 'youtube-transcript-api']);
+        if ($result->successful()) {
+            return 'Pip install completed successfully: <br><pre>' . $result->output() . '</pre>';
+        }
+        
+        $result2 = \Illuminate\Support\Facades\Process::run(['pip', 'install', '--user', 'youtube-transcript-api']);
+        if ($result2->successful()) {
+            return 'Pip install fallback completed successfully: <br><pre>' . $result2->output() . '</pre>';
+        }
+        
+        return 'Failed to install: <br>Output: <pre>' . $result->output() . '</pre><br>Error: <pre>' . $result->errorOutput() . '</pre><br>Fallback Error: <pre>' . $result2->errorOutput() . '</pre>';
+    } catch (\Exception $e) {
+        return 'Error running pip install: ' . $e->getMessage();
+    }
+});
+
