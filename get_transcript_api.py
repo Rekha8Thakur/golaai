@@ -63,7 +63,7 @@ def main():
                     "time_str": format_time(start)
                 })
                 
-            print(json.dumps(formatted_transcript, ensure_ascii=False))
+            print(json.dumps(formatted_transcript, ensure_ascii=True))
             return # Successful execution
             
         except Exception as e:

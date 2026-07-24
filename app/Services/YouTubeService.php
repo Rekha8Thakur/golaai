@@ -72,21 +72,22 @@ class YouTubeService
         
         $result = Process::env($env)->run([$python, $scriptPath, $videoId]);
 
+        $stdout = mb_convert_encoding($result->output(), 'UTF-8', 'UTF-8');
+
         if (!$result->successful()) {
-            $stdout = $result->output();
             $decoded = json_decode($stdout, true);
             if (json_last_error() === JSON_ERROR_NONE && isset($decoded['error'])) {
                 throw new Exception("Python script error: " . $decoded['error']);
             }
             
-            $errOut = $result->errorOutput() ?: $result->output();
+            $errOut = mb_convert_encoding($result->errorOutput() ?: $result->output(), 'UTF-8', 'UTF-8');
             throw new Exception("Failed to execute transcript script [Python: {$python}]: " . $errOut . " (Exit code: " . $result->exitCode() . ")");
         }
 
-        $data = json_decode($result->output(), true);
+        $data = json_decode($stdout, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception("Failed to parse transcript JSON: " . json_last_error_msg() . ". Output was: " . $result->output());
+            throw new Exception("Failed to parse transcript JSON: " . json_last_error_msg() . ". Output was: " . $stdout);
         }
 
         if (isset($data['error'])) {
