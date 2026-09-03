@@ -15,10 +15,10 @@ class OpenAIService
     }
 
     /**
-     * Generate Q&A, MCQs, Notes, and Action Items from transcript and summary.
+     * Generate MCQs from transcript.
      * Uses OpenAI with automatic fallback to Gemini if OpenAI hits a quota or is unavailable.
      */
-    public function generateStudyMaterials(array $transcript, string $summary): array
+    public function generateMCQs(array $transcript): array
     {
         $transcriptText = "";
         foreach ($transcript as $segment) {
@@ -31,25 +31,16 @@ class OpenAIService
         }
 
         $prompt = "You are a world-class instructional designer and learning assistant. " .
-                  "Based on the following YouTube video summary and transcript, please generate high-quality learning resources: \n\n" .
-                  "1. **Study Notes**: Comprehensive, in-depth study notes formatting with beautiful Markdown (tables, lists, subheadings, key terms). Put this in the 'notes' key.\n" .
-                  "2. **Action Items**: A list of key action items, checklist items, or practical takeaways for the learner. Put this in the 'action_items' key (array of strings).\n" .
-                  "3. **Q&A**: A list of 5-10 analytical or review questions with detailed, well-explained answers. Put this in the 'qa' key (array of objects with 'question' and 'answer').\n" .
-                  "4. **MCQs**: A list of 5-10 multiple-choice questions for self-assessment. Put this in the 'mcqs' key. Each item must have: 'question' (string), 'options' (array of 4 strings), 'answer' (the exact text matching the correct option), and 'explanation' (string explaining why it is correct).\n\n" .
-                  "Here is the Summary:\n{$summary}\n\n" .
+                  "Based on the following YouTube video transcript, please generate 5-10 high-quality multiple-choice questions (MCQs) for self-assessment. " .
+                  "Put this in the 'mcqs' key. Each item must have: 'question' (string), 'options' (array of 4 strings), 'answer' (the exact text matching the correct option), and 'explanation' (string explaining why it is correct).\n\n" .
                   "Here is the Transcript:\n{$transcriptText}\n\n" .
                   "You MUST return a JSON object with this exact structure:\n" .
                   "{\n" .
-                  "  \"notes\": \"string (Markdown format)\",\n" .
-                  "  \"action_items\": [\"string\", ...],\n" .
-                  "  \"qa\": [\n" .
-                  "    { \"question\": \"string\", \"answer\": \"string\" }\n" .
-                  "  ],\n" .
                   "  \"mcqs\": [\n" .
                   "    { \"question\": \"string\", \"options\": [\"string\", \"string\", \"string\", \"string\"], \"answer\": \"string\", \"explanation\": \"string\" }\n" .
                   "  ]\n" .
                   "}\n\n" .
-                  "CRITICAL: Any double quotes (\") used inside your string values (especially inside study notes, Q&A answers, or MCQ explanations) MUST be properly escaped as \\\" (e.g., \\\"Mission Allied 2.0\\\") to keep the JSON syntax valid. Never output raw unescaped double quotes inside a string value.\n" .
+                  "CRITICAL: Any double quotes (\") used inside your string values (especially inside MCQ explanations) MUST be properly escaped as \\\" (e.g., \\\"Mission Allied 2.0\\\") to keep the JSON syntax valid. Never output raw unescaped double quotes inside a string value.\n" .
                   "Make sure it is valid JSON and all properties are present.";
 
         try {
@@ -105,14 +96,14 @@ class OpenAIService
 
         } catch (Exception $e) {
             // Fall back to Gemini API if OpenAI fails
-            return $this->generateUsingGeminiFallback($prompt);
+            return $this->generateMCQsUsingGeminiFallback($prompt);
         }
     }
 
     /**
      * Fallback to Gemini 2.5 Flash if OpenAI API call fails or quota is exceeded.
      */
-    protected function generateUsingGeminiFallback(string $prompt): array
+    protected function generateMCQsUsingGeminiFallback(string $prompt): array
     {
         $geminiKey = config('services.gemini.key') ?? env('GEMINI_API_KEY', '');
         
@@ -120,10 +111,10 @@ class OpenAIService
             throw new Exception("OpenAI study material generation failed (exceeded quota or invalid key), and Gemini API fallback key is not configured.");
         }
 
-        // Use gemini-2.5-flash as the fallback model
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $geminiKey;
+        // Use gemini-flash-latest as the fallback model
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" . $geminiKey;
 
-        $response = Http::timeout(120)->withHeaders([
+        $response = Http::timeout(120)->retry(3, 2000)->withHeaders([
             'Content-Type' => 'application/json',
         ])->post($url, [
             'contents' => [
@@ -134,7 +125,29 @@ class OpenAIService
                 ]
             ],
             'generationConfig' => [
-                'responseMimeType' => 'application/json'
+                'responseMimeType' => 'application/json',
+                'responseSchema' => [
+                    'type' => 'OBJECT',
+                    'properties' => [
+                        'mcqs' => [
+                            'type' => 'ARRAY',
+                            'items' => [
+                                'type' => 'OBJECT',
+                                'properties' => [
+                                    'question' => ['type' => 'STRING'],
+                                    'options' => [
+                                        'type' => 'ARRAY',
+                                        'items' => ['type' => 'STRING']
+                                    ],
+                                    'answer' => ['type' => 'STRING'],
+                                    'explanation' => ['type' => 'STRING']
+                                ],
+                                'required' => ['question', 'options', 'answer', 'explanation']
+                            ]
+                        ]
+                    ],
+                    'required' => ['mcqs']
+                ]
             ]
         ]);
 

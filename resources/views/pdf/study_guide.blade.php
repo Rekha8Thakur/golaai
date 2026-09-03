@@ -163,50 +163,7 @@
         </div>
     </div>
 
-    <!-- Section: Summary -->
-    <div class="section-title">Executive Summary</div>
-    <div class="markdown-content">
-        {!! Illuminate\Support\Str::markdown($video->summary) !!}
-    </div>
-
-    <div class="page-break"></div>
-
-    <!-- Section: Study Notes -->
-    <div class="section-title">Comprehensive Study Notes</div>
-    <div class="markdown-content">
-        {!! Illuminate\Support\Str::markdown($video->notes) !!}
-    </div>
-
-    @if(!empty($video->action_items))
-        <div class="page-break"></div>
-        <!-- Section: Action Items -->
-        <div class="section-title">Action Items & Key Takeaways</div>
-        <div style="margin-top: 10px;">
-            @foreach($video->action_items as $item)
-                <div class="action-item">
-                    <div class="checkbox"></div>
-                    <div class="action-text">{{ $item }}</div>
-                </div>
-            @endforeach
-        </div>
-    @endif
-
-    @if(!empty($video->qa))
-        <div class="page-break"></div>
-        <!-- Section: Q&A -->
-        <div class="section-title">Questions & Answers</div>
-        <div style="margin-top: 10px;">
-            @foreach($video->qa as $index => $qaItem)
-                <div class="qa-item">
-                    <div class="question">Q{{ $index + 1 }}: {{ $qaItem['question'] }}</div>
-                    <div class="answer">{{ $qaItem['answer'] }}</div>
-                </div>
-            @endforeach
-        </div>
-    @endif
-
     @if(!empty($video->mcqs))
-        <div class="page-break"></div>
         <!-- Section: Self-Assessment MCQs -->
         <div class="section-title">Self-Assessment Quiz (MCQs)</div>
         <div style="margin-top: 10px;">

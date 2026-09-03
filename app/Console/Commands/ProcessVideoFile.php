@@ -18,14 +18,13 @@ class ProcessVideoFile extends Command
      *
      * @var string
      */
-    protected $description = 'Batch processes YouTube URLs/IDs from a text file, generates summaries and study materials, and imports them to the database.';
+    protected $description = 'Batch processes YouTube URLs/IDs from a text file, generates MCQs, and imports them to the database.';
 
     /**
      * Execute the console command.
      */
     public function handle(
         \App\Services\YouTubeService $youtubeService,
-        \App\Services\GeminiService $geminiService,
         \App\Services\OpenAIService $openaiService
     ) {
         $filePath = $this->argument('file');
@@ -84,23 +83,20 @@ class ProcessVideoFile extends Command
                 $metadata = $youtubeService->getVideoMetadata($videoId);
                 $this->line("   Title: {$metadata['title']}");
 
-                $this->line("3. Generating summary via Gemini (with OpenAI fallback)...");
-                $summary = $geminiService->generateSummary($transcript);
+                $this->line("3. Generating MCQs via OpenAI (with Gemini fallback)...");
+                $materials = $openaiService->generateMCQs($transcript);
 
-                $this->line("4. Generating study guide via OpenAI (with Gemini fallback)...");
-                $materials = $openaiService->generateStudyMaterials($transcript, $summary);
-
-                $this->line("5. Saving to database...");
+                $this->line("4. Saving to database...");
                 \App\Models\Video::create([
                     'video_id' => $videoId,
                     'title' => $metadata['title'],
                     'thumbnail_url' => $metadata['thumbnail_url'],
                     'transcript' => $transcript,
-                    'summary' => $summary,
-                    'notes' => $materials['notes'] ?? '',
-                    'qa' => $materials['qa'] ?? [],
+                    'summary' => '',
+                    'notes' => '',
+                    'qa' => [],
                     'mcqs' => $materials['mcqs'] ?? [],
-                    'action_items' => $materials['action_items'] ?? [],
+                    'action_items' => [],
                 ]);
 
                 $this->info("Success: Processed and saved '{$metadata['title']}'!");

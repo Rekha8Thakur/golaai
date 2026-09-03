@@ -528,50 +528,12 @@
     <div class="glass-card" style="padding: 1.5rem;">
         <!-- Tabs Headers -->
         <nav class="tabs-nav">
-            <button class="tab-button active" onclick="switchTab(event, 'tab-summary')">Summary</button>
-            <button class="tab-button" onclick="switchTab(event, 'tab-notes')">Study Notes</button>
-            <button class="tab-button" onclick="switchTab(event, 'tab-action')">Action Items</button>
-            <button class="tab-button" onclick="switchTab(event, 'tab-quiz')">Interactive Quiz</button>
-            <button class="tab-button" onclick="switchTab(event, 'tab-qa')">Q&A</button>
+            <button class="tab-button active" onclick="switchTab(event, 'tab-quiz')">Interactive Quiz</button>
             <button class="tab-button" onclick="switchTab(event, 'tab-transcript')">Transcript</button>
         </nav>
 
-        <!-- Tab: Summary -->
-        <div id="tab-summary" class="tab-pane active">
-            <div class="markdown-view">
-                {!! Illuminate\Support\Str::markdown($video->summary) !!}
-            </div>
-        </div>
-
-        <!-- Tab: Study Notes -->
-        <div id="tab-notes" class="tab-pane">
-            <div class="markdown-view">
-                {!! Illuminate\Support\Str::markdown($video->notes) !!}
-            </div>
-        </div>
-
-        <!-- Tab: Action Items -->
-        <div id="tab-action" class="tab-pane">
-            <div class="checklist">
-                @if(empty($video->action_items))
-                    <p style="color: var(--text-muted);">No action items generated.</p>
-                @else
-                    @foreach($video->action_items as $item)
-                        <div class="checklist-item" onclick="toggleChecklist(this)">
-                            <div class="checkbox-mock">
-                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <div class="checklist-text">{{ $item }}</div>
-                        </div>
-                    @endforeach
-                @endif
-            </div>
-        </div>
-
         <!-- Tab: Interactive Quiz (MCQs) -->
-        <div id="tab-quiz" class="tab-pane">
+        <div id="tab-quiz" class="tab-pane active">
             <div class="quiz-container">
                 @if(empty($video->mcqs))
                     <p style="color: var(--text-muted);">No MCQs generated.</p>
@@ -588,29 +550,6 @@
                             </div>
                             <div class="quiz-feedback">
                                 <strong>Explanation:</strong> {{ $mcq['explanation'] }}
-                            </div>
-                        </div>
-                    @endforeach
-                @endif
-            </div>
-        </div>
-
-        <!-- Tab: Accordion Q&A -->
-        <div id="tab-qa" class="tab-pane">
-            <div class="qa-container">
-                @if(empty($video->qa))
-                    <p style="color: var(--text-muted);">No Q&A generated.</p>
-                @else
-                    @foreach($video->qa as $index => $qaItem)
-                        <div class="qa-card">
-                            <button class="qa-trigger" onclick="toggleQA(this)">
-                                <span>Q{{ $index + 1 }}: {{ $qaItem['question'] }}</span>
-                                <svg class="qa-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                            <div class="qa-content">
-                                {{ $qaItem['answer'] }}
                             </div>
                         </div>
                     @endforeach

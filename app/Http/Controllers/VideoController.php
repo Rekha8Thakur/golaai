@@ -13,16 +13,13 @@ use Exception;
 class VideoController extends Controller
 {
     protected YouTubeService $youtubeService;
-    protected GeminiService $geminiService;
     protected OpenAIService $openaiService;
 
     public function __construct(
         YouTubeService $youtubeService,
-        GeminiService $geminiService,
         OpenAIService $openaiService
     ) {
         $this->youtubeService = $youtubeService;
-        $this->geminiService = $geminiService;
         $this->openaiService = $openaiService;
     }
 
@@ -77,23 +74,20 @@ class VideoController extends Controller
                 // 2. Fetch metadata (Title & Thumbnail)
                 $metadata = $this->youtubeService->getVideoMetadata($videoId);
 
-                // 3. Generate summary via Gemini API
-                $summary = $this->geminiService->generateSummary($transcript);
+                // 3. Generate MCQs via OpenAI API
+                $materials = $this->openaiService->generateMCQs($transcript);
 
-                // 4. Generate Q&A, MCQs, Notes, and Action Items via OpenAI API
-                $materials = $this->openaiService->generateStudyMaterials($transcript, $summary);
-
-                // 5. Save everything in database
+                // 4. Save everything in database
                 Video::create([
                     'video_id' => $videoId,
                     'title' => $metadata['title'],
                     'thumbnail_url' => $metadata['thumbnail_url'],
                     'transcript' => $transcript,
-                    'summary' => $summary,
-                    'notes' => $materials['notes'] ?? '',
-                    'qa' => $materials['qa'] ?? [],
+                    'summary' => '',
+                    'notes' => '',
+                    'qa' => [],
                     'mcqs' => $materials['mcqs'] ?? [],
-                    'action_items' => $materials['action_items'] ?? [],
+                    'action_items' => [],
                 ]);
 
                 return response()->json([
@@ -154,23 +148,20 @@ class VideoController extends Controller
                 // 2. Fetch metadata (Title & Thumbnail)
                 $metadata = $this->youtubeService->getVideoMetadata($videoId);
 
-                // 3. Generate summary via Gemini API
-                $summary = $this->geminiService->generateSummary($transcript);
+                // 3. Generate MCQs via OpenAI API
+                $materials = $this->openaiService->generateMCQs($transcript);
 
-                // 4. Generate Q&A, MCQs, Notes, and Action Items via OpenAI API
-                $materials = $this->openaiService->generateStudyMaterials($transcript, $summary);
-
-                // 5. Save everything in database
+                // 4. Save everything in database
                 Video::create([
                     'video_id' => $videoId,
                     'title' => $metadata['title'],
                     'thumbnail_url' => $metadata['thumbnail_url'],
                     'transcript' => $transcript,
-                    'summary' => $summary,
-                    'notes' => $materials['notes'] ?? '',
-                    'qa' => $materials['qa'] ?? [],
+                    'summary' => '',
+                    'notes' => '',
+                    'qa' => [],
                     'mcqs' => $materials['mcqs'] ?? [],
-                    'action_items' => $materials['action_items'] ?? [],
+                    'action_items' => [],
                 ]);
 
                 $results['success'][] = [

@@ -34,9 +34,9 @@ class GeminiService
                 throw new Exception("Gemini API key is not configured. Please add GEMINI_API_KEY to your .env file.");
             }
 
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . $this->apiKey;
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" . $this->apiKey;
 
-            $response = Http::timeout(120)->withHeaders([
+            $response = Http::timeout(120)->retry(3, 2000)->withHeaders([
                 'Content-Type' => 'application/json',
             ])->post($url, [
                 'contents' => [

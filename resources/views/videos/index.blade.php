@@ -737,7 +737,7 @@
 @section('content')
 <div class="hero-section">
     <h1 class="hero-title">Study Smart. <span>Learn Faster.</span></h1>
-    <p class="hero-subtitle">Transform any YouTube video lecture into summaries, comprehensive study notes, interactive quizzes, Q&As, and downloadable PDFs instantly.</p>
+    <p class="hero-subtitle">Transform any YouTube video lecture into interactive multiple-choice quizzes (MCQs) and downloadable PDFs instantly.</p>
 </div>
 
 <div class="search-container">
@@ -895,9 +895,8 @@
     const steps = [
         { time: 0, text: "Analyzing YouTube Video", sub: "Checking details and extracting metadata..." },
         { time: 3000, text: "Extracting Transcript", sub: "Reading and transcribing video contents (handling multilingual fallback)..." },
-        { time: 8000, text: "Summarizing with Gemini", sub: "Google Gemini 1.5 Flash is extracting core takeaways and structuring the summary..." },
-        { time: 13000, text: "Generating Study Materials", sub: "GPT-4o-mini is compiling comprehensive notes, interactive MCQs, checklists, and Q&As..." },
-        { time: 20000, text: "Finalizing Workspace", sub: "Saving resources to your library database..." }
+        { time: 8000, text: "Generating MCQs", sub: "GPT-4o-mini is generating interactive multiple-choice questions (MCQs)..." },
+        { time: 15000, text: "Finalizing Workspace", sub: "Saving resources to your library database..." }
     ];
 
     if (form) {
