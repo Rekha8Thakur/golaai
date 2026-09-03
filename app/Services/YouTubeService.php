@@ -103,6 +103,10 @@ class YouTubeService
      */
     protected function getPythonPath(): string
     {
+        if ($envPath = env('PYTHON_PATH')) {
+            return $envPath;
+        }
+
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             $result = Process::run(['where.exe', 'python']);
             if ($result->successful()) {
@@ -117,7 +121,25 @@ class YouTubeService
             return 'python';
         }
 
-        // On Linux / Hostinger, check for python3 first, then python
+        // On Linux / Hostinger, check common absolute paths directly first
+        $candidatePaths = [
+            '/usr/bin/python3',
+            '/usr/local/bin/python3',
+            '/usr/bin/python',
+            '/opt/alt/python312/bin/python3',
+            '/opt/alt/python311/bin/python3',
+            '/opt/alt/python310/bin/python3',
+            '/opt/alt/python39/bin/python3',
+            '/opt/alt/python38/bin/python3',
+        ];
+
+        foreach ($candidatePaths as $candidate) {
+            if (file_exists($candidate) && is_executable($candidate)) {
+                return $candidate;
+            }
+        }
+
+        // Try which command
         $result = Process::run(['which', 'python3']);
         if ($result->successful() && !empty(trim($result->output()))) {
             return trim($result->output());
